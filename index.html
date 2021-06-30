@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>濒危动物展示</title>
+    <style>
+        html,
+        body,
+        #viewDiv {
+            padding: 0;
+            margin: 0;
+            height: 100%;
+            width: 100%;
+        }
+		
+		#basemapTitle{
+				top:5px;
+				position: absolute;
+				right: 300px;
+				background-color: rgb(120, 156, 211);
+				border-radius: 10px;
+				padding: 20px;
+				opacity: 0.75;
+				font-size: 50px;
+				text-align: center;
+				text-size-adjust: unset;
+				width: 70%;
+				
+		}
+    </style>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.19/esri/themes/light/main.css">
+    <script src="https://js.arcgis.com/4.19/"></script>
+    <script>
+        require
+		(
+			[
+				"esri/tasks/Locator",
+				"esri/Map",
+				"esri/views/MapView",
+				"esri/layers/FeatureLayer",
+				//"esri/renderers/SimpleReaderer",
+				//"esri/symbols/SimpleMarkerSymbol",
+				//"esri/Color",
+				"esri/widgets/Legend",
+				"esri/widgets/ScaleBar",
+				"esri/widgets/BasemapGallery",
+				"esri/widgets/Locate",
+				"esri/widgets/NavigationToggle",
+				"esri/widgets/Search",
+				"esri/WebMap"
+			], 
+				(
+					Locator,
+					Map,
+					MapView,
+					FeatureLayer,
+					Legend,
+					ScaleBar,
+					BasemapGallery,
+					NavigationToggle,
+					Locate,
+					Search,
+					WebMap
+					//SimpleReaderer,
+					//SimpleMarkerSymbol,
+					//Color
+				)=>
+				{
+
+					// 使用世界地理编码服务创建一个定位器任务
+					var locatorTask = new Locator
+					({
+						url: "https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"
+					});
+
+
+					var map = new WebMap({
+					          portalItem: {
+					            // autocasts as new PortalItem()
+					            id: "93132d202b0d402481a4c8674c322667"
+					          }
+					        });
+					
+					        var view = new MapView({
+					          container: "viewDiv",
+					          map: map,
+							  center: [-40, 28],
+							  zoom: 3
+					        });
+                    view.when(function()
+					{
+						var FeatureLayer=map.layers.getItemAt(0);
+						view.ui.add(new Legend({view:view}),"bottom-left");
+											
+											var scalaBar=new ScaleBar({view:view});
+											view.ui.add(scalaBar,{position:"bottom-left"});
+											const basemapGallery = new BasemapGallery({
+												  view: view,
+												  container: document.createElement("viewDiv")
+												});
+						
+												// Add the widget to the top-right corner of the view
+												view.ui.add(basemapGallery, {
+												  position: "bottom-right"
+												});
+											
+											var locateWidget=new Locate(
+												{
+													view:view
+												
+												}
+											);
+											
+											view.ui.add(locateWidget,"top-left");
+											
+											var navigationToggle=new NavigationToggle(
+											{view:view}
+											);
+											view.ui.add(navigationToggle,"top-left");
+											
+											
+						const popupTrailheads = {
+											title: "{Title}",
+											content: [
+												{type:"fields",
+												fieldInfos:[{
+													fieldName:"Title",
+													label:"Species"
+												},
+												{
+													fieldName:'Population',
+													label:'Population'
+												},
+												{
+													fieldName:'Descriptio',
+													label:'info'
+												},
+												{
+													fieldName:'Image_Link',
+													label:"Photo credit"
+												}]},
+						
+												
+												//"<b>标题:</b> {Title}<br><b>可见性:</b> {Visible}}<br><b>图像：</b>{Image_URL}"
+						
+											
+												{
+												type:"media",
+												mediaInfos:[
+														{
+														
+															type:"image",
+														//value:{sourceURL:"https://www.sunset.com/wp-content/uploads/96006df453533f4c982212b8cc7882f5-800x0-c-default.jpg"}
+														
+														//value:{sourceURL:'[Image_URL]'}
+														value:{sourceURL:"{Image_URL}"}
+													
+													},
+													]
+													}
+													
+												]
+												
+											};
+											
+								FeatureLayer.popupTemplate=popupTrailheads;
+											const searchWidget=new Search({
+												view:view,
+												allPlaceholder:"请输入名称",
+												includeDefaultSources:false,
+												sources:[
+													{
+														layer:FeatureLayer,
+														searchFields:["Title"],
+														displayField:"Title",
+														exactMatch:false,
+														outFields:["Title"],
+														name:"物种名称",
+														placeholder:"比如：Western lowland gorilla (Gorilla gorilla gorilla)"
+													}
+						
+												]
+											
+											});
+											view.ui.add(searchWidget,{
+												position:"top-right"
+											});
+										
+					}
+					
+					)
+				}
+		);
+    </script>
+</head>
+
+<body>
+	
+	<div id="viewDiv"></div>
+	<span id="basemapTitle" class="esri-widget">世界濒危动物地图</span>	
+	
+    
+</body>
+
+</html>
